@@ -1,33 +1,40 @@
 // dashboard.tsx
 'use client';
-
-import React, { useEffect, useState } from 'react';
-import apiClient from '../utils/api';
+import { useEffect } from 'react';
 
 const Dashboard = () => {
-  const [user, setUser] = useState<User | null>(null);
-
-  type User = {
-  id: number;
-  name: string;
-  email: string;
-}
 
   useEffect(() => {
-    apiClient.get('user')
-      .then((response) => {
-        console.log(response);
-        setUser(response.data);
-      })
-      .catch((error) => {
-        console.error('Not authenticated:', error);
-      });
-    }, []);
-  if (!user) {
-    return <p>Loading...</p>;
-  }
+    const fetchProtectedData = async () => {
+      const token = localStorage.getItem('token');
+      if (!token) {
+        return;
+      }
 
-  return <div>Welcome, {user.name}!</div>;
+      try {
+        const response = await fetch('http://localhost/api/targets', {
+          method: 'GET', // or 'GET', depending on your API
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`,
+          },
+          // body: JSON.stringify({ /* your data */ }),
+        });
+
+        if (!response.ok) {
+          throw new Error('Failed to fetch protected data');
+        }
+
+        const result = await response.json();
+        console.log(result);
+      } catch (error) {
+        console.error('Error fetching protected data:', error);
+      }
+    };
+
+    fetchProtectedData();
+  }, []);
+
 };
 
 export default Dashboard;
